@@ -7,24 +7,77 @@
 
 <style>
 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI;
+}
+
 body{
-font-family:Arial;
-background:#f5f7fb;
+background:#0b1420;
+color:white;
+padding:40px;
+}
+
+/* Title */
+
+h1{
+margin-bottom:30px;
+}
+
+/* Grid Layout */
+
+.container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+}
+
+/* Cards */
+
+.card{
+padding:25px;
+background:#111c2d;
+border-radius:12px;
+box-shadow:0 5px 20px rgba(0,0,0,0.5);
 text-align:center;
 }
 
-.card{
-width:300px;
-margin:20px auto;
-padding:20px;
-background:white;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
+.card h3{
+color:#8fa6c9;
+margin-bottom:10px;
 }
 
 .value{
-font-size:28px;
-color:#2c7be5;
+font-size:30px;
+color:#4da3ff;
+font-weight:bold;
+}
+
+/* Alert Section */
+
+.alert-box{
+margin-top:40px;
+background:#111c2d;
+padding:20px;
+border-radius:10px;
+}
+
+.alert{
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+}
+
+.good{
+background:#163b2c;
+color:#32ffb4;
+}
+
+.bad{
+background:#3b1a1a;
+color:#ff5c5c;
 }
 
 </style>
@@ -33,42 +86,56 @@ color:#2c7be5;
 
 <body>
 
-<h1>AquaSense Water Monitor</h1>
+<h1>💧 AquaSense Water Monitor</h1>
+
+<div class="container">
 
 <div class="card">
-Mode
+<h3>Mode</h3>
 <div id="mode" class="value">--</div>
 </div>
 
 <div class="card">
-Temperature
+<h3>Temperature</h3>
 <div id="temp" class="value">--</div>
 </div>
 
 <div class="card">
-pH
+<h3>pH</h3>
 <div id="ph" class="value">--</div>
 </div>
 
 <div class="card">
-TDS
+<h3>TDS</h3>
 <div id="tds" class="value">--</div>
 </div>
 
 <div class="card">
-Turbidity
+<h3>Turbidity</h3>
 <div id="turb" class="value">--</div>
 </div>
 
 <div class="card">
-Nitrogen
+<h3>Nitrogen</h3>
 <div id="nitrogen" class="value">--</div>
 </div>
 
 <div class="card">
-Result
+<h3>Result</h3>
 <div id="result" class="value">--</div>
 </div>
+
+</div>
+
+
+<div class="alert-box">
+
+<h2>🚨 Real Time Alerts</h2>
+
+<div id="alerts"></div>
+
+</div>
+
 
 <script type="module">
 
@@ -85,6 +152,28 @@ const db=getFirestore(app);
 
 const ref=doc(db,"water","device1");
 
+
+/* Notification Permission */
+
+if(Notification.permission!=="granted"){
+Notification.requestPermission();
+}
+
+
+function notify(msg){
+
+if(Notification.permission==="granted"){
+new Notification(msg);
+}
+
+}
+
+
+/* Visitor Notification */
+
+notify("Someone opened AquaSense dashboard");
+
+
 onSnapshot(ref,(doc)=>{
 
 let d=doc.data();
@@ -93,13 +182,55 @@ document.getElementById("mode").innerText=d.mode;
 document.getElementById("temp").innerText=d.temperature+" °C";
 document.getElementById("ph").innerText=d.ph;
 document.getElementById("tds").innerText=d.tds+" ppm";
-document.getElementById("turb").innerText=d.turbidity;
+document.getElementById("turb").innerText=d.turbidity+" NTU";
 document.getElementById("nitrogen").innerText=d.nitrogen;
 document.getElementById("result").innerText=d.result;
+
+
+/* ALERT SYSTEM */
+
+let alerts="";
+
+if(d.ph<6.5 || d.ph>8.5){
+
+alerts+=`<div class="alert bad">⚠ pH level unsafe</div>`;
+notify("Warning: pH level unsafe");
+
+}
+
+if(d.tds>500){
+
+alerts+=`<div class="alert bad">⚠ High TDS detected</div>`;
+notify("Warning: High TDS detected");
+
+}
+
+if(d.turbidity>4){
+
+alerts+=`<div class="alert bad">⚠ Water turbidity high</div>`;
+notify("Warning: Water turbidity high");
+
+}
+
+if(d.temperature>40){
+
+alerts+=`<div class="alert bad">⚠ Temperature too high</div>`;
+notify("Warning: Temperature too high");
+
+}
+
+if(alerts===""){
+
+alerts=`<div class="alert good">✅ Water quality normal</div>`;
+
+}
+
+document.getElementById("alerts").innerHTML=alerts;
 
 });
 
 </script>
 
 </body>
+
 </html>
