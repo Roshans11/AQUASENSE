@@ -1,236 +1,1217 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<title>AquaSense Dashboard</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaSense Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+  :root {
+    --bg-deep: #020b14;
+    --bg-panel: #050f1c;
+    --bg-card: #071526;
+    --neon-blue: #00d4ff;
+    --neon-cyan: #00ffea;
+    --neon-green: #00ff88;
+    --neon-orange: #ff8c00;
+    --neon-red: #ff2d55;
+    --neon-yellow: #ffe500;
+    --text-primary: #e0f4ff;
+    --text-dim: #4a7a9b;
+    --grid-line: rgba(0,212,255,0.07);
+    --glow-blue: 0 0 20px rgba(0,212,255,0.4);
+    --glow-green: 0 0 20px rgba(0,255,136,0.4);
+    --glow-red: 0 0 20px rgba(255,45,85,0.4);
+  }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Segoe UI;
-}
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-body{
-background:#0b1420;
-color:white;
-padding:40px;
-}
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-/* Title */
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-h1{
-margin-bottom:30px;
-}
+  body::after {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0,255,136,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: ambientShift 12s ease-in-out infinite alternate;
+  }
 
-/* Grid Layout */
+  @keyframes ambientShift {
+    0% { transform: translate(0,0); }
+    100% { transform: translate(2%, 2%); }
+  }
 
-.container{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
-}
+  .wrap { position: relative; z-index: 1; padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 
-/* Cards */
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0,212,255,0.15);
+  }
 
-.card{
-padding:25px;
-background:#111c2d;
-border-radius:12px;
-box-shadow:0 5px 20px rgba(0,0,0,0.5);
-text-align:center;
-}
+  .logo-area { display: flex; align-items: center; gap: 16px; }
 
-.card h3{
-color:#8fa6c9;
-margin-bottom:10px;
-}
+  .logo-icon {
+    width: 52px; height: 52px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: var(--glow-blue), inset 0 0 20px rgba(0,212,255,0.1);
+    animation: iconPulse 3s ease-in-out infinite;
+  }
 
-.value{
-font-size:30px;
-color:#4da3ff;
-font-weight:bold;
-}
+  @keyframes iconPulse {
+    0%,100% { box-shadow: var(--glow-blue), inset 0 0 20px rgba(0,212,255,0.1); }
+    50% { box-shadow: 0 0 35px rgba(0,212,255,0.7), inset 0 0 30px rgba(0,212,255,0.2); }
+  }
 
-/* Alert Section */
+  .logo-text h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--neon-blue);
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba(0,212,255,0.5);
+  }
 
-.alert-box{
-margin-top:40px;
-background:#111c2d;
-padding:20px;
-border-radius:10px;
-}
+  .logo-text p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
 
-.alert{
-padding:10px;
-margin-top:10px;
-border-radius:6px;
-}
+  .header-right { display: flex; align-items: center; gap: 24px; }
 
-.good{
-background:#163b2c;
-color:#32ffb4;
-}
+  .live-badge {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--neon-green);
+    letter-spacing: 2px;
+  }
 
-.bad{
-background:#3b1a1a;
-color:#ff5c5c;
-}
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neon-green);
+    box-shadow: 0 0 10px var(--neon-green);
+    animation: blink 1.2s ease-in-out infinite;
+  }
 
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .clock {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: var(--neon-cyan);
+    letter-spacing: 2px;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border: 1px solid rgba(0,212,255,0.12);
+    border-radius: 30px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+
+  .status-pill.active { border-color: var(--neon-green); color: var(--neon-green); }
+  .status-pill.warn   { border-color: var(--neon-orange); color: var(--neon-orange); }
+  .status-pill.danger { border-color: var(--neon-red); color: var(--neon-red); animation: dangerPulse 1s ease-in-out infinite; }
+
+  @keyframes dangerPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* ── METRIC CARDS ── */
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(0,212,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: default;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-color, var(--neon-blue)), transparent);
+    opacity: 0.7;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0,212,255,0.3);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5), var(--glow-blue);
+  }
+
+  .metric-card.good { --accent-color: var(--neon-green); }
+  .metric-card.warn { --accent-color: var(--neon-orange); }
+  .metric-card.bad  { --accent-color: var(--neon-red); }
+
+  .card-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .card-label::before {
+    content: '';
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent-color, var(--neon-blue));
+    box-shadow: 0 0 6px var(--accent-color, var(--neon-blue));
+    flex-shrink: 0;
+  }
+
+  .card-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--neon-blue);
+    line-height: 1;
+    margin-bottom: 6px;
+    transition: all 0.5s;
+  }
+
+  .metric-card.good .card-value { color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,136,0.4); }
+  .metric-card.warn .card-value { color: var(--neon-orange); text-shadow: 0 0 15px rgba(255,140,0,0.4); }
+  .metric-card.bad  .card-value { color: var(--neon-red); text-shadow: 0 0 15px rgba(255,45,85,0.4); }
+
+  .card-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  .card-status {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .status-ok  { background: rgba(0,255,136,0.1); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.3); }
+  .status-warn{ background: rgba(255,140,0,0.1); color: var(--neon-orange); border: 1px solid rgba(255,140,0,0.3); }
+  .status-bad { background: rgba(255,45,85,0.1); color: var(--neon-red); border: 1px solid rgba(255,45,85,0.3); }
+
+  /* Mini sparkline inside cards */
+  .sparkline { margin-top: 14px; height: 36px; position: relative; }
+  .sparkline canvas { width: 100% !important; height: 36px !important; }
+
+  /* ── GAUGE CARD ── */
+  .gauge-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(0,212,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s;
+  }
+
+  .gauge-card:hover { transform: translateY(-3px); }
+
+  .gauge-card h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .gauge-wrap { position: relative; width: 140px; height: 80px; }
+
+  /* ── CHARTS ROW ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .chart-panel {
+    background: var(--bg-card);
+    border: 1px solid rgba(0,212,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative; overflow: hidden;
+  }
+
+  .chart-panel::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, rgba(0,212,255,0.06), transparent 70%);
+    border-radius: 0 16px;
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .panel-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  .chart-wrap { position: relative; height: 200px; }
+  .chart-wrap canvas { width: 100% !important; height: 200px !important; }
+
+  /* ── BOTTOM ROW ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+  }
+
+  /* ── TREATMENT PANEL ── */
+  .treatment-panel {
+    background: var(--bg-card);
+    border: 1px solid rgba(0,212,255,0.1);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .treatment-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .treatment-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+  }
+
+  .treatment-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(0,255,234,0.08);
+    color: var(--neon-cyan);
+    border: 1px solid rgba(0,255,234,0.2);
+    letter-spacing: 2px;
+  }
+
+  .treatment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px;
+    background: rgba(0,212,255,0.03);
+    border: 1px solid rgba(0,212,255,0.08);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  @keyframes slideIn {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .treatment-item:hover {
+    background: rgba(0,212,255,0.07);
+    border-color: rgba(0,212,255,0.2);
+    transform: translateX(4px);
+  }
+
+  .treatment-item.critical { border-color: rgba(255,45,85,0.3); background: rgba(255,45,85,0.04); }
+  .treatment-item.warning  { border-color: rgba(255,140,0,0.3); background: rgba(255,140,0,0.04); }
+  .treatment-item.ok       { border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.03); }
+
+  .treat-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .treat-body h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+
+  .treat-body p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+  }
+
+  .treat-tag {
+    margin-left: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    align-self: flex-start;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+  }
+
+  .tag-critical { background: rgba(255,45,85,0.15); color: var(--neon-red); border: 1px solid rgba(255,45,85,0.3); }
+  .tag-warning  { background: rgba(255,140,0,0.15); color: var(--neon-orange); border: 1px solid rgba(255,140,0,0.3); }
+  .tag-ok       { background: rgba(0,255,136,0.1); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.2); }
+
+  .no-treatment {
+    text-align: center;
+    padding: 40px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--neon-green);
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+
+  .no-treatment .big { font-size: 36px; display: block; margin-bottom: 10px; }
+
+  /* ── ALERTS PANEL ── */
+  .alerts-panel {
+    background: var(--bg-card);
+    border: 1px solid rgba(0,212,255,0.1);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .alerts-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--neon-red);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .alert-count {
+    background: var(--neon-red);
+    color: var(--bg-deep);
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+  }
+
+  .alert-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    animation: alertSlide 0.4s ease;
+  }
+
+  @keyframes alertSlide { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+  .alert-row.danger { background: rgba(255,45,85,0.08); border: 1px solid rgba(255,45,85,0.2); color: #ff8fa3; }
+  .alert-row.caution { background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.2); color: #ffbc70; }
+  .alert-row.clear  { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.15); color: #7fffc0; }
+
+  .alert-icon { font-size: 16px; flex-shrink: 0; }
+
+  .alert-text { flex: 1; line-height: 1.4; }
+  .alert-time { color: var(--text-dim); font-size: 10px; margin-top: 2px; }
+
+  /* ── WATER QUALITY SCORE ── */
+  .wq-score {
+    text-align: center;
+    padding: 10px 0 16px;
+  }
+
+  .wq-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 15px rgba(0,212,255,0.4));
+  }
+
+  .wq-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ── PARAMETER BARS ── */
+  .param-bar-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .param-bar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .param-bar-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .param-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+
+  .param-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: white;
+    opacity: 0.4;
+    border-radius: 2px;
+  }
+
+  .param-bar-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: var(--text-primary);
+    width: 50px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1200px) {
+    .main-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr 1fr; }
+    .bottom-row { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .wrap { padding: 16px; }
+    .main-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .wq-number { font-size: 36px; }
+  }
+
+  /* ── SCAN LINE EFFECT ── */
+  .scanline {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.15), transparent);
+    animation: scanDown 8s linear infinite;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  @keyframes scanDown {
+    0%   { top: -2px; }
+    100% { top: 100vh; }
+  }
+
+  /* ── NUMBER COUNTER ANIMATION ── */
+  @keyframes countUp { from { opacity:0; transform: scale(0.8); } to { opacity:1; transform: scale(1); } }
+  .value-updated { animation: countUp 0.4s ease; }
+
+  /* Mode badge */
+  .mode-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    padding: 4px 12px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.25);
+    border-radius: 4px;
+    color: var(--neon-blue);
+  }
 </style>
-
 </head>
-
 <body>
 
-<h1>💧 AquaSense Water Monitor</h1>
+<div class="scanline"></div>
 
-<div class="container">
+<div class="wrap">
 
-<div class="card">
-<h3>Mode</h3>
-<div id="mode" class="value">--</div>
+  <!-- HEADER -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">💧</div>
+      <div class="logo-text">
+        <h1>AQUASENSE</h1>
+        <p>REAL-TIME WATER ANALYTICS SYSTEM</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div> LIVE FEED</div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-pill" id="pill-mode">◈ MODE: --</div>
+    <div class="status-pill" id="pill-overall">◈ OVERALL: --</div>
+    <div class="status-pill" id="pill-ph">◈ pH: --</div>
+    <div class="status-pill" id="pill-tds">◈ TDS: --</div>
+    <div class="status-pill" id="pill-turb">◈ TURBIDITY: --</div>
+    <div class="status-pill" id="pill-temp">◈ TEMPERATURE: --</div>
+  </div>
+
+  <!-- METRIC CARDS -->
+  <div class="main-grid">
+
+    <div class="metric-card" id="card-temp">
+      <div class="card-label">Temperature</div>
+      <div class="card-value" id="val-temp">--</div>
+      <div class="card-sub">SAFE RANGE: 10 – 40 °C</div>
+      <div class="card-status" id="st-temp">--</div>
+      <div class="sparkline"><canvas id="spark-temp"></canvas></div>
+    </div>
+
+    <div class="metric-card" id="card-ph">
+      <div class="card-label">pH Level</div>
+      <div class="card-value" id="val-ph">--</div>
+      <div class="card-sub">SAFE RANGE: 6.5 – 8.5</div>
+      <div class="card-status" id="st-ph">--</div>
+      <div class="sparkline"><canvas id="spark-ph"></canvas></div>
+    </div>
+
+    <div class="metric-card" id="card-tds">
+      <div class="card-label">TDS</div>
+      <div class="card-value" id="val-tds">--</div>
+      <div class="card-sub">SAFE LIMIT: ≤ 500 ppm</div>
+      <div class="card-status" id="st-tds">--</div>
+      <div class="sparkline"><canvas id="spark-tds"></canvas></div>
+    </div>
+
+    <div class="metric-card" id="card-turb">
+      <div class="card-label">Turbidity</div>
+      <div class="card-value" id="val-turb">--</div>
+      <div class="card-sub">SAFE LIMIT: ≤ 4 NTU</div>
+      <div class="card-status" id="st-turb">--</div>
+      <div class="sparkline"><canvas id="spark-turb"></canvas></div>
+    </div>
+
+    <div class="metric-card" id="card-nitrogen">
+      <div class="card-label">Nitrogen</div>
+      <div class="card-value" id="val-nitrogen">--</div>
+      <div class="card-sub">MONITORED PARAMETER</div>
+      <div class="card-status" id="st-nitrogen">--</div>
+      <div class="sparkline"><canvas id="spark-nitrogen"></canvas></div>
+    </div>
+
+    <div class="metric-card" id="card-result">
+      <div class="card-label">Result</div>
+      <div class="card-value" id="val-result" style="font-size:18px;">--</div>
+      <div class="card-sub">AI CLASSIFICATION</div>
+      <div class="card-status" id="st-result">--</div>
+      <div class="sparkline"></div>
+    </div>
+
+    <!-- Water Quality Score -->
+    <div class="metric-card" style="grid-column: span 2;" id="card-wq">
+      <div class="card-label">Water Quality Index</div>
+      <div style="display:flex; align-items:center; gap:32px; flex-wrap:wrap; margin-top:8px;">
+        <div class="wq-score">
+          <div class="wq-number" id="wq-score">--</div>
+          <div class="wq-label">/ 100 SCORE</div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div class="param-bar-row">
+            <div class="param-bar-label">pH</div>
+            <div class="param-bar-track"><div class="param-bar-fill" id="bar-ph" style="width:0%; background: linear-gradient(90deg, #00ff88, #00d4ff);"></div></div>
+            <div class="param-bar-val" id="barval-ph">--</div>
+          </div>
+          <div class="param-bar-row">
+            <div class="param-bar-label">TDS</div>
+            <div class="param-bar-track"><div class="param-bar-fill" id="bar-tds" style="width:0%; background: linear-gradient(90deg, #00d4ff, #ffe500);"></div></div>
+            <div class="param-bar-val" id="barval-tds">--</div>
+          </div>
+          <div class="param-bar-row">
+            <div class="param-bar-label">TURB</div>
+            <div class="param-bar-track"><div class="param-bar-fill" id="bar-turb" style="width:0%; background: linear-gradient(90deg, #00d4ff, #ff8c00);"></div></div>
+            <div class="param-bar-val" id="barval-turb">--</div>
+          </div>
+          <div class="param-bar-row">
+            <div class="param-bar-label">TEMP</div>
+            <div class="param-bar-track"><div class="param-bar-fill" id="bar-temp" style="width:0%; background: linear-gradient(90deg, #00ffea, #ff2d55);"></div></div>
+            <div class="param-bar-val" id="barval-temp">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-row">
+
+    <!-- History Line Chart -->
+    <div class="chart-panel">
+      <div class="panel-title">PARAMETER HISTORY</div>
+      <div class="panel-sub">LIVE ROLLING 20-POINT TREND</div>
+      <div class="chart-wrap">
+        <canvas id="historyChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Radar -->
+    <div class="chart-panel">
+      <div class="panel-title">QUALITY RADAR</div>
+      <div class="panel-sub">PARAMETER BALANCE</div>
+      <div class="chart-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Doughnut -->
+    <div class="chart-panel">
+      <div class="panel-title">RISK BREAKDOWN</div>
+      <div class="panel-sub">PARAMETER RISK SHARE</div>
+      <div class="chart-wrap">
+        <canvas id="donutChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+
+    <!-- Treatment Recommendations -->
+    <div class="treatment-panel">
+      <div class="treatment-header">
+        <div class="treatment-title">⚗ TREATMENT RECOMMENDATIONS</div>
+        <div class="treatment-badge" id="treat-badge">ANALYSING...</div>
+      </div>
+      <div id="treatmentList"></div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alerts-panel">
+      <div class="alerts-title">
+        ⚡ REAL-TIME ALERTS
+        <div class="alert-count" id="alertCount">0</div>
+      </div>
+      <div id="alertsList"></div>
+    </div>
+
+  </div>
+
 </div>
 
-<div class="card">
-<h3>Temperature</h3>
-<div id="temp" class="value">--</div>
-</div>
-
-<div class="card">
-<h3>pH</h3>
-<div id="ph" class="value">--</div>
-</div>
-
-<div class="card">
-<h3>TDS</h3>
-<div id="tds" class="value">--</div>
-</div>
-
-<div class="card">
-<h3>Turbidity</h3>
-<div id="turb" class="value">--</div>
-</div>
-
-<div class="card">
-<h3>Nitrogen</h3>
-<div id="nitrogen" class="value">--</div>
-</div>
-
-<div class="card">
-<h3>Result</h3>
-<div id="result" class="value">--</div>
-</div>
-
-</div>
-
-
-<div class="alert-box">
-
-<h2>🚨 Real Time Alerts</h2>
-
-<div id="alerts"></div>
-
-</div>
-
-
+<!-- FIREBASE + CHART SCRIPTS -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore,doc,onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig={
-apiKey:"AIzaSyAA6exHxfF7JXem702r3Wg7z47w5tmQfm4",
-projectId:"aquasense-c58a5"
+const firebaseConfig = {
+  apiKey: "AIzaSyAA6exHxfF7JXem702r3Wg7z47w5tmQfm4",
+  projectId: "aquasense-c58a5"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const ref = doc(db, "water", "device1");
 
-const ref=doc(db,"water","device1");
+/* ── CLOCK ── */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+setInterval(updateClock, 1000);
+updateClock();
 
+/* ── SPARKLINE SETUP ── */
+const sparkData = { temp:[], ph:[], tds:[], turb:[], nitrogen:[] };
+const MAX_SPARK = 20;
 
-/* Notification Permission */
-
-if(Notification.permission!=="granted"){
-Notification.requestPermission();
+function makeSparkChart(id, color) {
+  const ctx = document.getElementById(id)?.getContext('2d');
+  if (!ctx) return null;
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels: Array(MAX_SPARK).fill(''), datasets: [{ data: Array(MAX_SPARK).fill(null), borderColor: color, borderWidth: 1.5, pointRadius: 0, fill: true, backgroundColor: color.replace(')', ',0.08)').replace('rgb','rgba').replace('#', 'rgba(').replace(/([0-9a-f]{2})/gi, (m) => parseInt(m,16)+',').slice(0,-1)+'0.08)', tension: 0.4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false}, tooltip:{enabled:false} }, scales: { x:{display:false}, y:{display:false} }, animation:{ duration:300 } }
+  });
 }
 
-
-function notify(msg){
-
-if(Notification.permission==="granted"){
-new Notification(msg);
+// Simpler sparkline creator
+function createSpark(canvasId, color) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return null;
+  return new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: Array(MAX_SPARK).fill(''),
+      datasets: [{
+        data: Array(MAX_SPARK).fill(null),
+        borderColor: color,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: true,
+        backgroundColor: 'rgba(0,212,255,0.05)',
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{enabled:false} },
+      scales: { x:{display:false}, y:{display:false} },
+      animation: { duration: 400 }
+    }
+  });
 }
 
+const sparks = {
+  temp: createSpark('spark-temp', '#ff8c00'),
+  ph: createSpark('spark-ph', '#00d4ff'),
+  tds: createSpark('spark-tds', '#ffe500'),
+  turb: createSpark('spark-turb', '#ff2d55'),
+  nitrogen: createSpark('spark-nitrogen', '#00ffea')
+};
+
+function pushSpark(key, value) {
+  if (!sparks[key]) return;
+  const ds = sparks[key].data.datasets[0];
+  ds.data.push(value);
+  if (ds.data.length > MAX_SPARK) ds.data.shift();
+  sparks[key].update('none');
 }
 
+/* ── HISTORY CHART ── */
+const histCtx = document.getElementById('historyChart').getContext('2d');
+const histLabels = [];
+const histData = { temp:[], ph:[], tds:[], turb:[] };
+const MAX_HIST = 20;
 
-/* Visitor Notification */
-
-notify("Someone opened AquaSense dashboard");
-
-
-onSnapshot(ref,(doc)=>{
-
-let d=doc.data();
-
-document.getElementById("mode").innerText=d.mode;
-document.getElementById("temp").innerText=d.temperature+" °C";
-document.getElementById("ph").innerText=d.ph;
-document.getElementById("tds").innerText=d.tds+" ppm";
-document.getElementById("turb").innerText=d.turbidity+" NTU";
-document.getElementById("nitrogen").innerText=d.nitrogen;
-document.getElementById("result").innerText=d.result;
-
-
-/* ALERT SYSTEM */
-
-let alerts="";
-
-if(d.ph<6.5 || d.ph>8.5){
-
-alerts+=`<div class="alert bad">⚠ pH level unsafe</div>`;
-notify("Warning: pH level unsafe");
-
-}
-
-if(d.tds>500){
-
-alerts+=`<div class="alert bad">⚠ High TDS detected</div>`;
-notify("Warning: High TDS detected");
-
-}
-
-if(d.turbidity>4){
-
-alerts+=`<div class="alert bad">⚠ Water turbidity high</div>`;
-notify("Warning: Water turbidity high");
-
-}
-
-if(d.temperature>40){
-
-alerts+=`<div class="alert bad">⚠ Temperature too high</div>`;
-notify("Warning: Temperature too high");
-
-}
-
-if(alerts===""){
-
-alerts=`<div class="alert good">✅ Water quality normal</div>`;
-
-}
-
-document.getElementById("alerts").innerHTML=alerts;
-
+const histChart = new Chart(histCtx, {
+  type: 'line',
+  data: {
+    labels: histLabels,
+    datasets: [
+      { label:'Temperature', data: histData.temp, borderColor:'#ff8c00', backgroundColor:'rgba(255,140,0,0.05)', borderWidth:2, pointRadius:0, tension:0.4, fill:true },
+      { label:'pH ×10', data: histData.ph, borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.05)', borderWidth:2, pointRadius:0, tension:0.4, fill:true },
+      { label:'TDS /10', data: histData.tds, borderColor:'#ffe500', backgroundColor:'rgba(255,229,0,0.03)', borderWidth:2, pointRadius:0, tension:0.4, fill:true },
+      { label:'Turbidity ×5', data: histData.turb, borderColor:'#ff2d55', backgroundColor:'rgba(255,45,85,0.04)', borderWidth:2, pointRadius:0, tension:0.4, fill:true }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position:'top', labels:{ color:'rgba(255,255,255,0.5)', font:{family:'Share Tech Mono', size:9}, boxWidth:12, padding:10 } },
+      tooltip: { mode:'index', intersect:false, backgroundColor:'rgba(5,15,28,0.95)', borderColor:'rgba(0,212,255,0.2)', borderWidth:1, titleColor:'#00d4ff', bodyColor:'rgba(255,255,255,0.7)', titleFont:{family:'Orbitron',size:10}, bodyFont:{family:'Share Tech Mono',size:10} }
+    },
+    scales: {
+      x: { display:true, grid:{ color:'rgba(0,212,255,0.05)' }, ticks:{ color:'rgba(255,255,255,0.2)', font:{family:'Share Tech Mono',size:8}, maxTicksLimit:8 } },
+      y: { display:true, grid:{ color:'rgba(0,212,255,0.05)' }, ticks:{ color:'rgba(255,255,255,0.2)', font:{family:'Share Tech Mono',size:8} } }
+    },
+    animation: { duration:300 }
+  }
 });
 
+/* ── RADAR CHART ── */
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+const radarChart = new Chart(radarCtx, {
+  type: 'radar',
+  data: {
+    labels: ['pH', 'TDS', 'Turbidity', 'Temperature', 'Nitrogen'],
+    datasets: [{
+      label: 'Quality %',
+      data: [0,0,0,0,0],
+      borderColor: '#00d4ff',
+      backgroundColor: 'rgba(0,212,255,0.1)',
+      pointBackgroundColor: '#00ffea',
+      pointBorderColor: '#00d4ff',
+      borderWidth: 1.5
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend:{display:false}, tooltip:{ backgroundColor:'rgba(5,15,28,0.95)', borderColor:'rgba(0,212,255,0.2)', borderWidth:1, titleColor:'#00d4ff', bodyColor:'rgba(255,255,255,0.7)' } },
+    scales: {
+      r: {
+        min:0, max:100,
+        grid: { color:'rgba(0,212,255,0.1)' },
+        angleLines: { color:'rgba(0,212,255,0.1)' },
+        ticks: { color:'rgba(255,255,255,0.2)', font:{family:'Share Tech Mono',size:8}, backdropColor:'transparent', stepSize:25 },
+        pointLabels: { color:'rgba(255,255,255,0.5)', font:{family:'Share Tech Mono',size:9} }
+      }
+    },
+    animation: { duration:600 }
+  }
+});
+
+/* ── DONUT CHART ── */
+const donutCtx = document.getElementById('donutChart').getContext('2d');
+const donutChart = new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['pH', 'TDS', 'Turbidity', 'Temperature', 'Nitrogen'],
+    datasets: [{
+      data: [20,20,20,20,20],
+      backgroundColor: ['rgba(0,212,255,0.7)','rgba(255,229,0,0.7)','rgba(255,45,85,0.7)','rgba(255,140,0,0.7)','rgba(0,255,234,0.7)'],
+      borderColor: ['#00d4ff','#ffe500','#ff2d55','#ff8c00','#00ffea'],
+      borderWidth: 1,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend: { position:'bottom', labels:{ color:'rgba(255,255,255,0.4)', font:{family:'Share Tech Mono',size:9}, boxWidth:10, padding:8 } },
+      tooltip: { backgroundColor:'rgba(5,15,28,0.95)', borderColor:'rgba(0,212,255,0.2)', borderWidth:1, titleColor:'#00d4ff', bodyColor:'rgba(255,255,255,0.7)' }
+    },
+    animation: { duration:600, animateRotate:true }
+  }
+});
+
+/* ── NOTIFICATIONS ── */
+if (Notification.permission !== "granted") Notification.requestPermission();
+function notify(msg) { if (Notification.permission === "granted") new Notification(msg); }
+notify("AquaSense dashboard loaded");
+
+/* ── HELPERS ── */
+function setCardClass(id, cls) {
+  const el = document.getElementById(id);
+  el.className = 'metric-card ' + cls;
+}
+
+function setStatus(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'card-status ' + cls;
+}
+
+function setPill(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'status-pill ' + cls;
+}
+
+function animateValue(id, val) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.classList.remove('value-updated');
+  void el.offsetWidth;
+  el.classList.add('value-updated');
+}
+
+function scoreColor(s) {
+  if (s >= 80) return '#00ff88';
+  if (s >= 60) return '#00d4ff';
+  if (s >= 40) return '#ffe500';
+  return '#ff2d55';
+}
+
+/* ── TREATMENT LOGIC ── */
+function getTreatments(d) {
+  const items = [];
+
+  // pH
+  if (d.ph < 6.5) {
+    items.push({ cls:'critical', icon:'🧪', title:'Add Soda Ash (Na₂CO₃)', desc:'pH is too acidic ('+d.ph+'). Dose 10–15 mg/L sodium carbonate to raise pH to 7.0–7.5. Re-test after 30 min.', tag:'CRITICAL', tagCls:'tag-critical' });
+  } else if (d.ph > 8.5) {
+    items.push({ cls:'critical', icon:'🧴', title:'Add CO₂ or Citric Acid', desc:'pH is too alkaline ('+d.ph+'). Inject CO₂ gas or add dilute citric acid solution. Target pH 7.0–7.5.', tag:'CRITICAL', tagCls:'tag-critical' });
+  } else {
+    items.push({ cls:'ok', icon:'✅', title:'pH Normal — No Action', desc:'pH at '+d.ph+' is within safe range 6.5–8.5. Continue monitoring.', tag:'OPTIMAL', tagCls:'tag-ok' });
+  }
+
+  // TDS
+  if (d.tds > 1000) {
+    items.push({ cls:'critical', icon:'💠', title:'Reverse Osmosis Required', desc:'TDS '+d.tds+' ppm is critically high. Deploy RO membrane filtration. Consider ion exchange resin for specific ion removal.', tag:'CRITICAL', tagCls:'tag-critical' });
+  } else if (d.tds > 500) {
+    items.push({ cls:'warning', icon:'🌊', title:'Activate Carbon + Sediment Filter', desc:'TDS '+d.tds+' ppm exceeds safe limit. Use activated carbon filter with sediment pre-filter. Flush system 2×.', tag:'WARNING', tagCls:'tag-warning' });
+  } else {
+    items.push({ cls:'ok', icon:'✅', title:'TDS Normal — Filter OK', desc:'TDS at '+d.tds+' ppm is within acceptable range ≤500 ppm. Routine filter check recommended.', tag:'GOOD', tagCls:'tag-ok' });
+  }
+
+  // Turbidity
+  if (d.turbidity > 10) {
+    items.push({ cls:'critical', icon:'🔬', title:'Multi-Stage Coagulation', desc:'Turbidity '+d.turbidity+' NTU — severe. Add alum (Al₂SO₄) coagulant 5–10 mg/L, flocculate, then pass through sand + anthracite dual-media filter.', tag:'CRITICAL', tagCls:'tag-critical' });
+  } else if (d.turbidity > 4) {
+    items.push({ cls:'warning', icon:'🧫', title:'Sand/Membrane Filtration', desc:'Turbidity '+d.turbidity+' NTU exceeds 4 NTU limit. Run through 0.45µm membrane or rapid sand filter. Check source contamination.', tag:'WARNING', tagCls:'tag-warning' });
+  } else {
+    items.push({ cls:'ok', icon:'✅', title:'Turbidity Normal', desc:'Turbidity at '+d.turbidity+' NTU is within safe limit ≤4 NTU. No filtration intervention needed.', tag:'GOOD', tagCls:'tag-ok' });
+  }
+
+  // Temperature
+  if (d.temperature > 40) {
+    items.push({ cls:'critical', icon:'🌡️', title:'Active Cooling Required', desc:'Temperature '+d.temperature+'°C is critically high. Initiate cooling via heat exchanger or cooling tower. High temps accelerate microbial growth and reduce O₂.', tag:'CRITICAL', tagCls:'tag-critical' });
+  } else if (d.temperature > 35) {
+    items.push({ cls:'warning', icon:'♨️', title:'Aeration & Cooling Monitor', desc:'Temperature '+d.temperature+'°C is elevated. Increase aeration to offset O₂ depletion. Monitor closely and consider shade/cooling.', tag:'WARNING', tagCls:'tag-warning' });
+  } else {
+    items.push({ cls:'ok', icon:'✅', title:'Temperature Normal', desc:'Temperature at '+d.temperature+'°C is within safe operating range. Continue monitoring.', tag:'GOOD', tagCls:'tag-ok' });
+  }
+
+  // Nitrogen
+  const nitrogenVal = parseFloat(d.nitrogen);
+  if (!isNaN(nitrogenVal)) {
+    if (nitrogenVal > 10) {
+      items.push({ cls:'warning', icon:'🌿', title:'Biological Denitrification', desc:'Elevated nitrogen detected. Use biological denitrification (anoxic zone + microorganisms). Consider ion exchange or reverse osmosis as backup.', tag:'WARNING', tagCls:'tag-warning' });
+    } else {
+      items.push({ cls:'ok', icon:'✅', title:'Nitrogen Within Range', desc:'Nitrogen at '+d.nitrogen+' is within acceptable limits. Continue periodic monitoring.', tag:'GOOD', tagCls:'tag-ok' });
+    }
+  }
+
+  return items;
+}
+
+/* ── MAIN UPDATE ── */
+onSnapshot(ref, (snapshot) => {
+  const d = snapshot.data();
+  if (!d) return;
+
+  const now = new Date().toLocaleTimeString('en-US',{hour12:false});
+
+  // Update metric cards
+  animateValue('val-temp', d.temperature + ' °C');
+  animateValue('val-ph', d.ph);
+  animateValue('val-tds', d.tds + ' ppm');
+  animateValue('val-turb', d.turbidity + ' NTU');
+  animateValue('val-nitrogen', d.nitrogen);
+  animateValue('val-result', d.result);
+
+  // Sparklines
+  pushSpark('temp', d.temperature);
+  pushSpark('ph', d.ph);
+  pushSpark('tds', d.tds / 10);
+  pushSpark('turb', d.turbidity);
+  pushSpark('nitrogen', parseFloat(d.nitrogen) || 0);
+
+  // History chart
+  histLabels.push(now);
+  if (histLabels.length > MAX_HIST) histLabels.shift();
+  histData.temp.push(d.temperature); if(histData.temp.length > MAX_HIST) histData.temp.shift();
+  histData.ph.push(d.ph * 10);       if(histData.ph.length > MAX_HIST)   histData.ph.shift();
+  histData.tds.push(d.tds / 10);     if(histData.tds.length > MAX_HIST)  histData.tds.shift();
+  histData.turb.push(d.turbidity * 5); if(histData.turb.length > MAX_HIST) histData.turb.shift();
+  histChart.update();
+
+  // Card classes
+  const phOk   = d.ph >= 6.5 && d.ph <= 8.5;
+  const tdsOk  = d.tds <= 500;
+  const turbOk = d.turbidity <= 4;
+  const tempOk = d.temperature <= 40;
+
+  setCardClass('card-ph',   phOk   ? 'good metric-card' : 'bad metric-card');
+  setCardClass('card-tds',  tdsOk  ? 'good metric-card' : 'warn metric-card');
+  setCardClass('card-turb', turbOk ? 'good metric-card' : 'bad metric-card');
+  setCardClass('card-temp', tempOk ? 'good metric-card' : 'warn metric-card');
+
+  setStatus('st-ph',   phOk   ? 'SAFE'    : 'UNSAFE',  phOk   ? 'status-ok'   : 'status-bad');
+  setStatus('st-tds',  tdsOk  ? 'NORMAL'  : 'HIGH',    tdsOk  ? 'status-ok'   : 'status-warn');
+  setStatus('st-turb', turbOk ? 'CLEAR'   : 'HIGH',    turbOk ? 'status-ok'   : 'status-bad');
+  setStatus('st-temp', tempOk ? 'NORMAL'  : 'HOT',     tempOk ? 'status-ok'   : 'status-warn');
+  setStatus('st-nitrogen', 'ACTIVE', 'status-ok');
+  setStatus('st-result', d.result || '--', 'status-ok');
+
+  // Status pills
+  setPill('pill-mode', '◈ MODE: ' + (d.mode || '--'), 'active');
+  const allGood = phOk && tdsOk && turbOk && tempOk;
+  setPill('pill-overall', '◈ STATUS: ' + (allGood ? 'NORMAL' : 'ACTION NEEDED'), allGood ? 'active' : 'danger');
+  setPill('pill-ph',   '◈ pH: '   + d.ph,          phOk   ? 'active' : 'danger');
+  setPill('pill-tds',  '◈ TDS: '  + d.tds + ' ppm', tdsOk  ? 'active' : 'warn');
+  setPill('pill-turb', '◈ TURB: ' + d.turbidity + ' NTU', turbOk ? 'active' : 'danger');
+  setPill('pill-temp', '◈ TEMP: ' + d.temperature + '°C', tempOk ? 'active' : 'warn');
+
+  // Water Quality Score
+  let score = 100;
+  if (!phOk)   score -= (Math.abs(d.ph - 7.5) / 7.5) * 30;
+  if (!tdsOk)  score -= Math.min(30, ((d.tds - 500) / 500) * 30);
+  if (!turbOk) score -= Math.min(25, ((d.turbidity - 4) / 4) * 25);
+  if (!tempOk) score -= Math.min(15, ((d.temperature - 40) / 20) * 15);
+  score = Math.max(0, Math.round(score));
+  const wqEl = document.getElementById('wq-score');
+  wqEl.textContent = score;
+  wqEl.style.background = `linear-gradient(135deg, ${scoreColor(score)}, #00d4ff)`;
+  wqEl.style['-webkit-background-clip'] = 'text';
+  wqEl.style['-webkit-text-fill-color'] = 'transparent';
+
+  // Progress bars
+  const phPct   = Math.round(Math.max(0, Math.min(100, 100 - Math.abs(d.ph - 7) / 7 * 100)));
+  const tdsPct  = Math.round(Math.max(0, Math.min(100, 100 - d.tds / 10)));
+  const turbPct = Math.round(Math.max(0, Math.min(100, 100 - d.turbidity * 10)));
+  const tempPct = Math.round(Math.max(0, Math.min(100, 100 - (d.temperature / 60) * 100)));
+  document.getElementById('bar-ph').style.width   = phPct + '%';
+  document.getElementById('bar-tds').style.width  = tdsPct + '%';
+  document.getElementById('bar-turb').style.width = turbPct + '%';
+  document.getElementById('bar-temp').style.width = tempPct + '%';
+  document.getElementById('barval-ph').textContent   = d.ph;
+  document.getElementById('barval-tds').textContent  = d.tds;
+  document.getElementById('barval-turb').textContent = d.turbidity;
+  document.getElementById('barval-temp').textContent = d.temperature;
+
+  // Radar chart
+  radarChart.data.datasets[0].data = [phPct, tdsPct, turbPct, tempPct, 70];
+  radarChart.update();
+
+  // Donut chart (risk shares)
+  const phRisk   = phOk   ? 5  : 30;
+  const tdsRisk  = tdsOk  ? 5  : 25;
+  const turbRisk = turbOk ? 5  : 25;
+  const tempRisk = tempOk ? 5  : 15;
+  const nitroRisk = 10;
+  donutChart.data.datasets[0].data = [phRisk, tdsRisk, turbRisk, tempRisk, nitroRisk];
+  donutChart.update();
+
+  // Treatment recommendations
+  const treatments = getTreatments(d);
+  const critCount = treatments.filter(t => t.cls === 'critical').length;
+  const warnCount = treatments.filter(t => t.cls === 'warning').length;
+  const badge = document.getElementById('treat-badge');
+  if (critCount > 0) { badge.textContent = critCount + ' CRITICAL'; badge.style.color = '#ff2d55'; badge.style.borderColor = 'rgba(255,45,85,0.3)'; badge.style.background = 'rgba(255,45,85,0.08)'; }
+  else if (warnCount > 0) { badge.textContent = warnCount + ' WARNING'; badge.style.color = '#ff8c00'; badge.style.borderColor = 'rgba(255,140,0,0.3)'; badge.style.background = 'rgba(255,140,0,0.08)'; }
+  else { badge.textContent = 'ALL CLEAR'; badge.style.color = '#00ff88'; badge.style.borderColor = 'rgba(0,255,136,0.2)'; badge.style.background = 'rgba(0,255,136,0.06)'; }
+
+  const treatList = document.getElementById('treatmentList');
+  if (allGood) {
+    treatList.innerHTML = `<div class="no-treatment"><span class="big">✅</span>Water quality is optimal.<br><span style="color:var(--text-dim)">No treatment required.</span></div>`;
+  } else {
+    treatList.innerHTML = treatments.map((t, i) =>
+      `<div class="treatment-item ${t.cls}" style="animation-delay:${i * 80}ms">
+        <div class="treat-icon">${t.icon}</div>
+        <div class="treat-body">
+          <h4>${t.title}</h4>
+          <p>${t.desc}</p>
+        </div>
+        <div class="treat-tag ${t.tagCls}">${t.tag}</div>
+      </div>`
+    ).join('');
+  }
+
+  // Alerts
+  let alertsHTML = '';
+  let alertCount = 0;
+  const alertTimes = [];
+
+  if (!phOk) {
+    alertsHTML += `<div class="alert-row danger"><div class="alert-icon">⚠️</div><div class="alert-text">pH at ${d.ph} is outside safe range (6.5–8.5).<div class="alert-time">${now}</div></div></div>`;
+    alertCount++; notify("⚠ pH level unsafe");
+  }
+  if (!tdsOk) {
+    alertsHTML += `<div class="alert-row caution"><div class="alert-icon">⚠️</div><div class="alert-text">TDS at ${d.tds} ppm exceeds limit (500 ppm).<div class="alert-time">${now}</div></div></div>`;
+    alertCount++; notify("⚠ High TDS detected");
+  }
+  if (!turbOk) {
+    alertsHTML += `<div class="alert-row danger"><div class="alert-icon">⚠️</div><div class="alert-text">Turbidity at ${d.turbidity} NTU exceeds limit (4 NTU).<div class="alert-time">${now}</div></div></div>`;
+    alertCount++; notify("⚠ High turbidity");
+  }
+  if (!tempOk) {
+    alertsHTML += `<div class="alert-row caution"><div class="alert-icon">🌡️</div><div class="alert-text">Temperature at ${d.temperature}°C is high (limit 40°C).<div class="alert-time">${now}</div></div></div>`;
+    alertCount++; notify("⚠ Temperature too high");
+  }
+  if (alertCount === 0) {
+    alertsHTML = `<div class="alert-row clear"><div class="alert-icon">✅</div><div class="alert-text">All parameters within safe ranges.<div class="alert-time">${now}</div></div></div>`;
+  }
+
+  document.getElementById('alertsList').innerHTML = alertsHTML;
+  document.getElementById('alertCount').textContent = alertCount;
+});
 </script>
-
 </body>
-
 </html>
