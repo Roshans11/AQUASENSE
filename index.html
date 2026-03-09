@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AquaSense Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f7fb;
+text-align:center;
+}
+
+.card{
+width:300px;
+margin:20px auto;
+padding:20px;
+background:white;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.value{
+font-size:28px;
+color:#2c7be5;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>AquaSense Water Monitor</h1>
+
+<div class="card">
+Mode
+<div id="mode" class="value">--</div>
+</div>
+
+<div class="card">
+Temperature
+<div id="temp" class="value">--</div>
+</div>
+
+<div class="card">
+pH
+<div id="ph" class="value">--</div>
+</div>
+
+<div class="card">
+TDS
+<div id="tds" class="value">--</div>
+</div>
+
+<div class="card">
+Turbidity
+<div id="turb" class="value">--</div>
+</div>
+
+<div class="card">
+Nitrogen
+<div id="nitrogen" class="value">--</div>
+</div>
+
+<div class="card">
+Result
+<div id="result" class="value">--</div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore,doc,onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyAA6exHxfF7JXem702r3Wg7z47w5tmQfm4",
+projectId:"aquasense-c58a5"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+const ref=doc(db,"water","device1");
+
+onSnapshot(ref,(doc)=>{
+
+let d=doc.data();
+
+document.getElementById("mode").innerText=d.mode;
+document.getElementById("temp").innerText=d.temperature+" °C";
+document.getElementById("ph").innerText=d.ph;
+document.getElementById("tds").innerText=d.tds+" ppm";
+document.getElementById("turb").innerText=d.turbidity;
+document.getElementById("nitrogen").innerText=d.nitrogen;
+document.getElementById("result").innerText=d.result;
+
+});
+
+</script>
+
+</body>
+</html>
