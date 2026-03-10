@@ -1049,7 +1049,33 @@ function getTreatments(d) {
   }
 
   // Nitrogen
-  const nitrogenVal = parseFloat(d.nitrogen);
+  if(d.mode === "Irrigation"){
+
+const nitrogenVal = parseFloat(d.nitrogen);
+
+if (!isNaN(nitrogenVal)) {
+  if (nitrogenVal > 10) {
+    items.push({
+      cls:'warning',
+      icon:'🌿',
+      title:'Biological Denitrification',
+      desc:'Elevated nitrogen detected. Use biological denitrification.',
+      tag:'WARNING',
+      tagCls:'tag-warning'
+    });
+  } else {
+    items.push({
+      cls:'ok',
+      icon:'✅',
+      title:'Nitrogen Within Range',
+      desc:'Nitrogen level acceptable.',
+      tag:'GOOD',
+      tagCls:'tag-ok'
+    });
+  }
+}
+
+}
   if (!isNaN(nitrogenVal)) {
     if (nitrogenVal > 10) {
       items.push({ cls:'warning', icon:'🌿', title:'Biological Denitrification', desc:'Elevated nitrogen detected. Use biological denitrification (anoxic zone + microorganisms). Consider ion exchange or reverse osmosis as backup.', tag:'WARNING', tagCls:'tag-warning' });
@@ -1073,7 +1099,12 @@ onSnapshot(ref, (snapshot) => {
   animateValue('val-ph', d.ph);
   animateValue('val-tds', d.tds + ' ppm');
   animateValue('val-turb', d.turbidity + ' NTU');
-  animateValue('val-nitrogen', d.nitrogen);
+ if(d.mode === "Irrigation"){
+    document.getElementById("card-nitrogen").style.display = "block";
+    animateValue('val-nitrogen', d.nitrogen);
+}else{
+    document.getElementById("card-nitrogen").style.display = "none";
+}
   animateValue('val-result', d.result);
 
   // Sparklines
@@ -1081,7 +1112,9 @@ onSnapshot(ref, (snapshot) => {
   pushSpark('ph', d.ph);
   pushSpark('tds', d.tds / 10);
   pushSpark('turb', d.turbidity);
-  pushSpark('nitrogen', parseFloat(d.nitrogen) || 0);
+  if(d.mode === "Irrigation"){
+    pushSpark('nitrogen', parseFloat(d.nitrogen) || 0);
+}
 
   // History chart
   histLabels.push(now);
@@ -1147,7 +1180,13 @@ onSnapshot(ref, (snapshot) => {
   document.getElementById('barval-temp').textContent = d.temperature;
 
   // Radar chart
-  radarChart.data.datasets[0].data = [phPct, tdsPct, turbPct, tempPct, 70];
+ let nitrogenValue = 0;
+
+if(d.mode === "Irrigation"){
+    nitrogenValue = 70;
+}
+
+radarChart.data.datasets[0].data = [phPct, tdsPct, turbPct, tempPct, nitrogenValue];
   radarChart.update();
 
   // Donut chart (risk shares)
