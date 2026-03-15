@@ -708,7 +708,12 @@
       <div class="card-status" id="st-result">--</div>
       <div class="sparkline"></div>
     </div>
-
+    <div class="metric-card" id="card-bio">
+      <div class="card-label">Biological Status</div>
+      <div class="card-value" id="val-bio" style="font-size:18px;">--</div>
+      <div class="card-sub">MICROBIAL RISK INDICATOR</div>
+      <div class="card-status" id="st-bio">--</div>
+    </div>
     <!-- Water Quality Score -->
     <div class="metric-card" style="grid-column: span 2;" id="card-wq">
       <div class="card-label">Water Quality Index</div>
@@ -1047,7 +1052,17 @@ function getTreatments(d) {
   } else {
     items.push({ cls:'ok', icon:'✅', title:'Temperature Normal', desc:'Temperature at '+d.temperature+'°C is within safe operating range. Continue monitoring.', tag:'GOOD', tagCls:'tag-ok' });
   }
-
+  // bio gas
+  if(d.bio_status === "BIO SAFE"){
+    setCardClass('card-bio', 'good metric-card');
+    setStatus('st-bio', 'SAFE', 'status-ok');
+  }else if(d.bio_status === "MODERATE RISK"){
+    setCardClass('card-bio', 'warn metric-card');
+    setStatus('st-bio', 'RISK', 'status-warn');
+  }else if(d.bio_status === "HIGH CONTAMINATION"){
+    setCardClass('card-bio', 'bad metric-card');
+    setStatus('st-bio', 'DANGER', 'status-bad');
+  }
   // Nitrogen
   if(d.mode === "Irrigation"){
 
@@ -1106,7 +1121,7 @@ onSnapshot(ref, (snapshot) => {
     document.getElementById("card-nitrogen").style.display = "none";
 }
   animateValue('val-result', d.result);
-
+  animateValue('val-bio', d.bio_status || "--");
   // Sparklines
   pushSpark('temp', d.temperature);
   pushSpark('ph', d.ph);
@@ -1240,6 +1255,26 @@ radarChart.data.datasets[0].data = [phPct, tdsPct, turbPct, tempPct, nitrogenVal
     alertsHTML += `<div class="alert-row danger"><div class="alert-icon">⚠️</div><div class="alert-text">Turbidity at ${d.turbidity} NTU exceeds limit (4 NTU).<div class="alert-time">${now}</div></div></div>`;
     alertCount++; notify("⚠ High turbidity");
   }
+  if(d.bio_status === "HIGH CONTAMINATION"){
+  alertsHTML += `<div class="alert-row danger">
+  <div class="alert-icon">🦠</div>
+  <div class="alert-text">
+  Possible Biological Contamination Detected
+  <div class="alert-time">${now}</div>
+  </div></div>`;
+  alertCount++;
+  notify("⚠ Biological contamination detected");
+}
+
+if(d.bio_status === "MODERATE RISK"){
+  alertsHTML += `<div class="alert-row caution">
+  <div class="alert-icon">🧫</div>
+  <div class="alert-text">
+  Moderate microbial contamination risk
+  <div class="alert-time">${now}</div>
+  </div></div>`;
+  alertCount++;
+}
   if (!tempOk) {
     alertsHTML += `<div class="alert-row caution"><div class="alert-icon">🌡️</div><div class="alert-text">Temperature at ${d.temperature}°C is high (limit 40°C).<div class="alert-time">${now}</div></div></div>`;
     alertCount++; notify("⚠ Temperature too high");
